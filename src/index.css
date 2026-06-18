@@ -3266,6 +3266,31 @@ input[type='range'].space-range:disabled {
   line-height: 1.5;
 }
 .nv-bearer-warn b { color: #fff; }
+/* 재로그인 버튼이 있는 확장 배너 */
+.nv-bearer-warn--action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.nv-bearer-warn-text { flex: 1; min-width: 0; }
+.nv-bearer-relogin-btn {
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: none;
+  background: #f5b85c;
+  color: #1a1200;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s;
+  white-space: nowrap;
+}
+.nv-bearer-relogin-btn:hover:not(:disabled) { filter: brightness(1.12); }
+.nv-bearer-relogin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── 에이전트 설치 동의 모달 ─────────────────────────────── */
 .nv-install-overlay {

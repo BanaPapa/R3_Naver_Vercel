@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { pingAgent, getCookieStatus, startNaverLogin, AgentStatus } from '../services/agentApi';
+import { pingAgent, getCookieStatus, startNaverLogin, AgentStatus, CookieStatus } from '../services/agentApi';
 
 const POLL_INTERVAL_MS = 10_000;
 
@@ -11,16 +11,18 @@ export function useAgentStatus() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginJustSucceeded, setLoginJustSucceeded] = useState(false);
 
-  const check = useCallback(async () => {
+  const check = useCallback(async (): Promise<CookieStatus | null> => {
     const agentSt = await pingAgent();
     setStatus(agentSt);
     if (agentSt === 'running') {
       const cs = await getCookieStatus();
       setCookieReady(cs.hasCookies);
       setBearerReady(cs.hasBearer);
+      return cs;
     } else {
       setCookieReady(false);
       setBearerReady(false);
+      return null;
     }
   }, []);
 
@@ -29,11 +31,15 @@ export function useAgentStatus() {
     setLoginError(null);
     try {
       await startNaverLogin();
-      // 낙관적 업데이트 대신 실제 상태를 에이전트에서 확인
-      // (bearer 캡처 여부를 정확히 반영하기 위해)
-      await check();
-      setLoginJustSucceeded(true);
-      setTimeout(() => setLoginJustSucceeded(false), 5000);
+      // 실제 상태를 에이전트에서 확인 — bearer 캡처 여부를 정확히 반영
+      const cs = await check();
+      // 쿠키와 bearer 모두 정상일 때만 성공 화면 표시.
+      // bearer 미캡처(창 조기 닫힘 등) 시에는 성공 화면 없이 검색 화면으로 가고
+      // bearer 경고 배너가 뜨면서 재로그인 버튼이 안내함.
+      if (cs?.hasCookies && cs?.hasBearer) {
+        setLoginJustSucceeded(true);
+        setTimeout(() => setLoginJustSucceeded(false), 5000);
+      }
     } catch (err) {
       setLoginError(err instanceof Error ? err.message : '로그인 중 오류가 발생했습니다.');
     } finally {

@@ -331,8 +331,9 @@ export function NaverCrawlerTab({ crawler, slots, session }: NaverCrawlerTabProp
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
               <span>
+                창이 보이지 않으면 <b>작업 표시줄</b>에서 찾아 클릭해 주세요.<br />
                 로그인 후 화면이 바뀌어도 <b>창을 직접 닫지 마세요.</b><br />
-                네이버 연결 정보를 수집하는 중이며, 완료되면 자동으로 닫힙니다.
+                연결 정보 수집이 끝나면 자동으로 닫힙니다.
               </span>
             </div>
           )}
@@ -373,9 +374,18 @@ export function NaverCrawlerTab({ crawler, slots, session }: NaverCrawlerTabProp
 
       <main className="eos-view">
         {cookieReady && !bearerReady && (
-          <div className="nv-bearer-warn">
-            Bearer 토큰이 만료되었습니다 — new.land API 검색이 실패할 수 있습니다.
-            트레이 아이콘 우클릭 → <b>네이버 로그인</b>으로 갱신해 주세요.
+          <div className="nv-bearer-warn nv-bearer-warn--action">
+            <div className="nv-bearer-warn-text">
+              <b>네이버 연결 정보가 불완전합니다.</b>
+              {' '}로그인 창을 일찍 닫으셨나요? 일부 매물(new.land) 검색이 실패할 수 있습니다.
+            </div>
+            <button
+              className="nv-bearer-relogin-btn"
+              onClick={triggerLogin}
+              disabled={loginLoading}
+            >
+              {loginLoading ? '로그인 중…' : '다시 로그인'}
+            </button>
           </div>
         )}
         <Monitor
