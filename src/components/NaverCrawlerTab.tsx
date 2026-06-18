@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import { SearchPanel } from './SearchPanel';
 import { Monitor } from './Monitor';
 import { ResultTable } from './ResultTable';
@@ -7,15 +8,19 @@ import { SlotModal } from './SlotModal';
 import { InfoModal } from './InfoModal';
 import { useCrawler } from '../hooks/useCrawler';
 import { useSlots } from '../hooks/useSlots';
+import { useAgentStatus } from '../hooks/useAgentStatus';
 import { CrawlerConfig, SavedSlot } from '../types';
 import { AreaUnit, PriceUnit } from '../services/api';
+import { setNaverBases, setNaverCrawlToken } from '../services/naverApi';
+import { fetchCrawlToken } from '../services/agentApi';
 
 interface NaverCrawlerTabProps {
   crawler: ReturnType<typeof useCrawler>;
   slots: ReturnType<typeof useSlots>;
+  session: Session | null;
 }
 
-export function NaverCrawlerTab({ crawler, slots }: NaverCrawlerTabProps) {
+export function NaverCrawlerTab({ crawler, slots, session }: NaverCrawlerTabProps) {
   const { state, start, stop, skipDong, reset, clearLogs, load } = crawler;
   const [searchKey, setSearchKey] = useState(0);
   const [areaUnit, setAreaUnit] = useState<AreaUnit>('sqm');
@@ -24,6 +29,24 @@ export function NaverCrawlerTab({ crawler, slots }: NaverCrawlerTabProps) {
   const [crawlModalOpen, setCrawlModalOpen] = useState(false);
   const [slotModalOpen, setSlotModalOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const { status: agentStatus, recheck: recheckAgent } = useAgentStatus();
+
+  // 에이전트 상태 변경 시 베이스 URL + 크롤 토큰 관리
+  useEffect(() => {
+    const agentRunning = agentStatus === 'running';
+    setNaverBases(agentRunning);
+
+    if (agentRunning && session?.access_token) {
+      fetchCrawlToken(session.access_token)
+        .then((token: string) => setNaverCrawlToken(token))
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          setNotice(`크롤 토큰 발급 실패: ${msg}`);
+        });
+    } else {
+      setNaverCrawlToken(null);
+    }
+  }, [agentStatus, session]);
 
   const canSave = state.properties.length > 0 && state.lastConfig !== null;
   const savedCount = slots.slots.filter(Boolean).length;
@@ -81,6 +104,57 @@ export function NaverCrawlerTab({ crawler, slots }: NaverCrawlerTabProps) {
   const canReset = state.status === 'done' || state.status === 'stopped';
   // 첫 수집 전(idle)에는 결과 영역(헤더 포함)을 대형 안내로 가린다.
   const showEmptyState = state.status === 'idle';
+
+  // 에이전트 미실행 시 안내 화면 표시
+  if (agentStatus === 'offline') {
+    return (
+      <div className={`eos-work${ctrlCollapsed ? ' ctrl-collapsed' : ''}`}>
+        <div className="eos-view">
+          <div className="nv-agent-offline">
+            <div className="nv-agent-offline-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                <circle cx="12" cy="12" r="9" />
+                <path d="M8 12h8M12 8v8" strokeLinecap="round" />
+              </svg>
+            </div>
+            <h2>로컬 에이전트가 실행되지 않고 있습니다</h2>
+            <p>
+              네이버 부동산 매물 검색은 사용자 PC에서 실행되는
+              <br />
+              <b>Estate-OS Agent</b> 프로그램을 통해 동작합니다.
+            </p>
+            <div className="nv-agent-steps">
+              <div className="nv-agent-step">
+                <span className="step-num">1</span>
+                <span>아래 버튼에서 에이전트를 다운로드합니다.</span>
+              </div>
+              <div className="nv-agent-step">
+                <span className="step-num">2</span>
+                <span>설치 후 실행하면 트레이에 아이콘이 표시됩니다.</span>
+              </div>
+              <div className="nv-agent-step">
+                <span className="step-num">3</span>
+                <span>에이전트가 실행된 상태에서 아래 버튼을 누르세요.</span>
+              </div>
+            </div>
+            <div className="nv-agent-actions">
+              <a
+                className="btn-primary"
+                href="https://github.com/BanaPapa/Estate-OS/releases/latest"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                에이전트 다운로드
+              </a>
+              <button className="btn-outline" onClick={recheckAgent}>
+                연결 재시도
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`eos-work${ctrlCollapsed ? ' ctrl-collapsed' : ''}`}>

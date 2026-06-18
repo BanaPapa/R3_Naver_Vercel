@@ -2180,6 +2180,82 @@ input[type='range'].space-range:disabled {
   color: var(--blue);
   font-weight: 700;
 }
+
+/* ── 에이전트 오프라인 안내 ── */
+.nv-agent-offline {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 18px;
+  padding: 48px 32px;
+  color: var(--muted);
+}
+.nv-agent-offline-icon svg {
+  width: 72px;
+  height: 72px;
+  color: var(--accent);
+  opacity: 0.8;
+}
+.nv-agent-offline h2 {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--fg);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.nv-agent-offline p {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--muted);
+  margin: 0;
+}
+.nv-agent-offline p b {
+  color: var(--accent);
+  font-weight: 700;
+}
+.nv-agent-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 22px;
+  width: 100%;
+  max-width: 460px;
+}
+.nv-agent-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--fg);
+}
+.step-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #000;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.nv-agent-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8px;
+}
+
 .sort-icon {
   margin-left: 4px;
   font-size: 13px;

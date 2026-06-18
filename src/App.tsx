@@ -102,7 +102,7 @@ export default function App() {
         {/* 매물시세 탭은 항상 마운트 상태로 두고 다른 탭일 때만 숨긴다.
             (언마운트하면 단위/지역/필터 등 로컬 선택 상태가 초기화되는 문제 방지) */}
         <div style={{ display: isSettings || isAdminTab ? 'none' : 'contents' }}>
-          <NaverCrawlerTab crawler={crawler} slots={slots} />
+          <NaverCrawlerTab crawler={crawler} slots={slots} session={auth.session} />
         </div>
         {isAdminTab && isAdmin && <MemberApproval />}
         {isSettings && (

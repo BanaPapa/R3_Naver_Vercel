@@ -1,7 +1,21 @@
 import { randomDelay } from './utils';
+import { AGENT_NAVER_BASE, AGENT_NAVER_NEW_BASE } from './agentApi';
 
-const NAVER_BASE = '/naver-api';
-const NAVER_NEW_BASE = '/naver-new-api';
+// 기본값: Vite 개발 프록시 / Vercel 프록시 경유
+// 에이전트 실행 감지 시 setNaverBases()로 에이전트 주소로 전환
+let NAVER_BASE = '/naver-api';
+let NAVER_NEW_BASE = '/naver-new-api';
+let _crawlToken: string | null = null;
+
+export function setNaverBases(agentRunning: boolean): void {
+  NAVER_BASE = agentRunning ? AGENT_NAVER_BASE : '/naver-api';
+  NAVER_NEW_BASE = agentRunning ? AGENT_NAVER_NEW_BASE : '/naver-new-api';
+}
+
+export function setNaverCrawlToken(token: string | null): void {
+  _crawlToken = token;
+}
+
 const COOKIE_KEY = 'naver_cookie';
 const BEARER_KEY = 'naver_bearer';
 
@@ -35,10 +49,8 @@ function getNaverHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: 'application/json, text/plain, */*',
   };
-  // Cookie를 커스텀 헤더로 전송 → Vite proxy가 Cookie 헤더로 변환
-  if (cookie) {
-    headers['X-Naver-Cookie'] = cookie;
-  }
+  if (cookie) headers['X-Naver-Cookie'] = cookie;
+  if (_crawlToken) headers['X-Crawl-Token'] = _crawlToken;
   return headers;
 }
 
@@ -133,6 +145,7 @@ async function naverNewFetch(
   const bearer = getStoredBearer();
   if (bearer) headers['X-Naver-Bearer'] = bearer;
   if (referer) headers['X-Naver-Referer'] = referer;
+  if (_crawlToken) headers['X-Crawl-Token'] = _crawlToken;
   const resp = await fetch(url, {
     method: 'GET',
     headers,
