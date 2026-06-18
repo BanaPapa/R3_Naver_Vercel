@@ -6,6 +6,7 @@ const POLL_INTERVAL_MS = 10_000;
 export function useAgentStatus() {
   const [status, setStatus] = useState<AgentStatus>('unknown');
   const [cookieReady, setCookieReady] = useState(false);
+  const [bearerReady, setBearerReady] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginJustSucceeded, setLoginJustSucceeded] = useState(false);
@@ -16,8 +17,10 @@ export function useAgentStatus() {
     if (agentSt === 'running') {
       const cs = await getCookieStatus();
       setCookieReady(cs.hasCookies);
+      setBearerReady(cs.hasBearer);
     } else {
       setCookieReady(false);
+      setBearerReady(false);
     }
   }, []);
 
@@ -27,6 +30,7 @@ export function useAgentStatus() {
     try {
       await startNaverLogin();
       setCookieReady(true);
+      setBearerReady(true);
       setLoginJustSucceeded(true);
       // 5초 후 플래그 초기화 (성공 화면이 3.5초간 표시된 뒤)
       setTimeout(() => setLoginJustSucceeded(false), 5000);
@@ -43,5 +47,5 @@ export function useAgentStatus() {
     return () => clearInterval(id);
   }, [check]);
 
-  return { status, cookieReady, loginLoading, loginError, loginJustSucceeded, recheck: check, triggerLogin };
+  return { status, cookieReady, bearerReady, loginLoading, loginError, loginJustSucceeded, recheck: check, triggerLogin };
 }

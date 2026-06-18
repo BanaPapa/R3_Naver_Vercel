@@ -72,6 +72,7 @@ export function clearCrawlToken(): void {
 
 export interface CookieStatus {
   hasCookies: boolean;
+  hasBearer: boolean;
   loginDate: string | null;
 }
 
@@ -80,10 +81,10 @@ export async function getCookieStatus(): Promise<CookieStatus> {
     const res = await fetch(`${AGENT_BASE}/cookie-status`, {
       signal: AbortSignal.timeout(2000),
     });
-    if (!res.ok) return { hasCookies: false, loginDate: null };
+    if (!res.ok) return { hasCookies: false, hasBearer: false, loginDate: null };
     return (await res.json()) as CookieStatus;
   } catch {
-    return { hasCookies: false, loginDate: null };
+    return { hasCookies: false, hasBearer: false, loginDate: null };
   }
 }
 

@@ -3121,6 +3121,19 @@ input[type='range'].space-range:disabled {
 .eos-acct-logout svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.8; fill: none; }
 .side-collapsed .eos-acct-logout { display: none; }
 
+/* ── Bearer 만료 경고 배너 ───────────────────────────────── */
+.nv-bearer-warn {
+  margin: 0 0 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, #f5b85c 12%, transparent);
+  border: 1px solid color-mix(in srgb, #f5b85c 35%, transparent);
+  color: #f5b85c;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.nv-bearer-warn b { color: #fff; }
+
 /* ── 에이전트 설치 동의 모달 ─────────────────────────────── */
 .nv-install-overlay {
   position: fixed;

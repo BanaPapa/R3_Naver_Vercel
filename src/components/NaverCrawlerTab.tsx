@@ -37,6 +37,7 @@ export function NaverCrawlerTab({ crawler, slots, session }: NaverCrawlerTabProp
   const {
     status: agentStatus,
     cookieReady,
+    bearerReady,
     loginLoading,
     loginError,
     loginJustSucceeded,
@@ -313,6 +314,12 @@ export function NaverCrawlerTab({ crawler, slots, session }: NaverCrawlerTabProp
       />
 
       <main className="eos-view">
+        {cookieReady && !bearerReady && (
+          <div className="nv-bearer-warn">
+            Bearer 토큰이 만료되었습니다 — new.land API 검색이 실패할 수 있습니다.
+            트레이 아이콘 우클릭 → <b>네이버 로그인</b>으로 갱신해 주세요.
+          </div>
+        )}
         <Monitor
           status={state.status}
           progress={state.progress}

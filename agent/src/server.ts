@@ -122,7 +122,7 @@ export function createServer(): express.Application {
 
   // 쿠키 로그인 상태 확인
   app.get('/cookie-status', (_req: Request, res: Response) => {
-    res.json({ hasCookies: hasCookies(), loginDate: getLoginDate() });
+    res.json({ hasCookies: hasCookies(), hasBearer: getBearer() !== '', loginDate: getLoginDate() });
   });
 
   // 네이버 로그인 창 열기 (로그인 완료 또는 창 닫힘까지 대기)
