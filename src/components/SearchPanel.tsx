@@ -212,24 +212,24 @@ export function SearchPanel({ status, onStart, onStop, onToggleCollapse }: Searc
           onSpaceUnitChange={setSpaceUnit}
           disabled={disabled}
         />
-      </div>
 
-      <div className="eos-ctrl-foot">
-        {!isRunning ? (
-          <button className="eos-run-btn" onClick={handleStart} disabled={!region.large}>
-            <svg viewBox="0 0 24 24">
-              <path d="M5 3l14 9-14 9z" />
-            </svg>
-            데이터 수집 실행
-          </button>
-        ) : (
-          <button className="eos-run-btn stop" onClick={onStop}>
-            <svg viewBox="0 0 24 24">
-              <rect x="6" y="6" width="12" height="12" rx="1.5" />
-            </svg>
-            수집 중지
-          </button>
-        )}
+        <div className="run-btn-wrap">
+          {!isRunning ? (
+            <button className="eos-run-btn" onClick={handleStart} disabled={!region.large}>
+              <svg viewBox="0 0 24 24">
+                <path d="M5 3l14 9-14 9z" />
+              </svg>
+              데이터 수집 실행
+            </button>
+          ) : (
+            <button className="eos-run-btn stop" onClick={onStop}>
+              <svg viewBox="0 0 24 24">
+                <rect x="6" y="6" width="12" height="12" rx="1.5" />
+              </svg>
+              수집 중지
+            </button>
+          )}
+        </div>
       </div>
 
       {pendingConfig && (

@@ -254,6 +254,8 @@ export interface RawArticleInfo {
     managementFeeAmount?: number;
     priceChangeStatus?: number;
     priceChangeHistories?: Array<{ modifiedDate: string; dealPrice: number }>;
+    premiumPrice?: number;
+    optionPrice?: number;
   };
 }
 
@@ -500,4 +502,53 @@ export async function getArticleList(params: ArticleListParams): Promise<Article
       list: result.list ?? [],
     };
   });
+}
+
+// ====================================================
+// 개별 매물 상세 조회 (new.land /api/articles/{articleNo})
+// 분양권 프리미엄/옵션, 상세설명, 중개업소 상세 정보 포함
+// ====================================================
+
+export interface ArticleDetailResult {
+  detailDescription: string;
+  premiumPrice: number;          // 원 단위 (API만원 × 10000)
+  optionPrice: number;           // 원 단위 (API만원 × 10000)
+  realtorName: string;
+  realtorAddress: string;
+  cellPhoneNo: string;
+  representativeTelNo: string;
+  dealCount: number;
+  leaseCount: number;
+  rentCount: number;
+}
+
+export async function getArticleDetail(
+  articleNo: string,
+  complexNo?: number,
+): Promise<ArticleDetailResult | null> {
+  try {
+    const params: Record<string, unknown> = {};
+    if (complexNo && complexNo > 0) params.complexNo = complexNo;
+    const data = await naverNewFetch(
+      `/api/articles/${encodeURIComponent(articleNo)}`,
+      params,
+    ) as Record<string, unknown>;
+    const detail  = (data.articleDetail  ?? {}) as Record<string, unknown>;
+    const price   = (data.articlePrice   ?? {}) as Record<string, unknown>;
+    const realtor = (data.articleRealtor ?? {}) as Record<string, unknown>;
+    return {
+      detailDescription:   String(detail.detailDescription   ?? ''),
+      premiumPrice:        Number(price.premiumPrice          ?? 0) * 10_000,
+      optionPrice:         Number(price.optionPrice           ?? 0) * 10_000,
+      realtorName:         String(realtor.realtorName         ?? ''),
+      realtorAddress:      String(realtor.address             ?? ''),
+      cellPhoneNo:         String(realtor.cellPhoneNo         ?? ''),
+      representativeTelNo: String(realtor.representativeTelNo ?? ''),
+      dealCount:           Number(realtor.dealCount           ?? 0),
+      leaseCount:          Number(realtor.leaseCount          ?? 0),
+      rentCount:           Number(realtor.rentCount           ?? 0),
+    };
+  } catch {
+    return null;
+  }
 }

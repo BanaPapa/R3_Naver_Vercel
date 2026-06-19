@@ -993,7 +993,7 @@ body {
   height: 34px;
   border-radius: 10px;
   flex: none;
-  background: linear-gradient(140deg, var(--blue), var(--purple-2));
+  background: var(--blue);
   display: grid;
   place-items: center;
   font-weight: 800;
@@ -1276,13 +1276,16 @@ body {
   border-top: 1px solid var(--border);
   flex: none;
 }
+.run-btn-wrap {
+  padding-top: 4px;
+}
 .eos-run-btn {
   width: 100%;
   height: 46px;
   border-radius: 12px;
   font-size: 16.5px;
   font-weight: 700;
-  color: #04201c;
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1290,8 +1293,8 @@ body {
   border: 0;
   font-family: inherit;
   cursor: pointer;
-  background: linear-gradient(120deg, #34e3cc, var(--teal));
-  box-shadow: 0 12px 26px -10px rgba(45, 212, 191, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, var(--blue), var(--purple-2));
+  box-shadow: 0 12px 26px -10px var(--blue-dim), inset 0 0 0 1px rgba(255, 255, 255, 0.18);
   transition: transform 0.16s var(--ease), filter 0.16s;
 }
 .eos-run-btn:hover:not(:disabled) {
@@ -1307,7 +1310,7 @@ body {
 .eos-run-btn svg {
   width: 16px;
   height: 16px;
-  stroke: #04201c;
+  stroke: #fff;
   stroke-width: 2.2;
   fill: none;
 }
@@ -2152,6 +2155,174 @@ input[type='range'].space-range:disabled {
 .result-table tbody tr:hover td {
   background: var(--blue-dim);
 }
+
+/* ── 행 선택 하이라이트 ── */
+@keyframes row-select-pulse {
+  0%   { background-color: rgba(79, 141, 255, 0.08); }
+  35%  { background-color: rgba(79, 141, 255, 0.30); }
+  100% { background-color: rgba(79, 141, 255, 0.13); }
+}
+.result-table tbody tr.row-selected td {
+  background-color: rgba(79, 141, 255, 0.13) !important;
+  animation: row-select-pulse 0.45s ease-out forwards;
+  box-shadow: inset 0 1px 0 rgba(79, 141, 255, 0.35), inset 0 -1px 0 rgba(79, 141, 255, 0.35);
+}
+.result-table tbody tr.row-selected:hover td {
+  background-color: rgba(79, 141, 255, 0.20) !important;
+}
+
+/* ── 컬럼 리사이즈 핸들 ── */
+.col-resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 3;
+}
+.col-resize-handle:hover,
+.col-resize-handle:active {
+  background: linear-gradient(180deg, transparent 10%, var(--blue) 40%, var(--blue) 60%, transparent 90%);
+  opacity: 0.6;
+}
+
+/* ── 셀 내 버튼 레이아웃 ── */
+.td-cell-with-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+.td-cell-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── 상세/중개업소 + 버튼 ── */
+.detail-plus-btn {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--border-2);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  padding: 0;
+  font-family: var(--font);
+}
+.detail-plus-btn:hover {
+  background: var(--blue-dim);
+  color: var(--blue);
+  border-color: var(--blue);
+}
+
+/* ── 분양권 추가 열 강조 ── */
+.presale-col {
+  color: var(--teal) !important;
+}
+.presale-total {
+  font-weight: 700;
+}
+
+/* ── 상세/중개업소 모달 ── */
+.detail-modal-card {
+  width: 480px;
+  max-width: 90vw;
+  max-height: 80vh;
+  padding: 28px 28px 24px;
+  overflow-y: auto;
+}
+.detail-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.detail-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--fg);
+  margin: 0;
+}
+.detail-modal-feature {
+  font-size: 15px;
+  color: var(--teal);
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--teal-dim);
+  border-radius: var(--r-sm);
+  border-left: 3px solid var(--teal);
+}
+.detail-modal-body {
+  flex: 1;
+}
+.detail-modal-desc {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--fg-2);
+  margin: 0;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+}
+.detail-modal-loading,
+.detail-modal-empty {
+  color: var(--muted);
+  font-size: 15px;
+  padding: 20px 0;
+  display: block;
+  text-align: center;
+}
+.detail-modal-error {
+  color: var(--red);
+  font-size: 15px;
+  padding: 20px 0;
+  display: block;
+  text-align: center;
+}
+
+/* ── 중개업소 정보 테이블 ── */
+.realtor-info-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.realtor-info-table th,
+.realtor-info-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+.realtor-info-table th {
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+  width: 90px;
+}
+.realtor-info-table td {
+  color: var(--fg-2);
+  word-break: break-all;
+}
+.realtor-info-table tr:last-child th,
+.realtor-info-table tr:last-child td {
+  border-bottom: none;
+}
+
 .table-empty {
   text-align: center;
   padding: 48px 20px;

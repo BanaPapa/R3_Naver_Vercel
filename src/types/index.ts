@@ -52,6 +52,8 @@ export interface Property {
   managementFee: number;
   priceChangeStatus: number;
   priceChangeHistories?: Array<{ modifiedDate: string; dealPrice: number }>;
+  premiumPrice: number;   // 분양권 프리미엄 (원 단위, 0 if not applicable)
+  optionPrice: number;    // 분양권 옵션비용 (원 단위, 0 if not applicable)
   supplySpace: number;
   exclusiveSpace: number;
   contractSpace: number;
@@ -171,6 +173,10 @@ export const EXCLUSIVE_SPACE_TYPES = ['OPST', 'OBYG', 'SMS', 'APTHGJ', 'APTHGJ:S
 
 export function isExclusiveSpaceType(realEstateType: string): boolean {
   return realEstateType.split(':').some((t) => EXCLUSIVE_SPACE_TYPES.includes(t));
+}
+
+export function isPresaleType(realEstateType: string): boolean {
+  return realEstateType === 'ABYG' || realEstateType === 'OBYG';
 }
 
 // UI 코드 → Naver API 상품 유형 코드 매핑

@@ -519,6 +519,7 @@ export function NaverCrawlerTab({ crawler, slots, session, agentStatus }: NaverC
             areaUnit={areaUnit}
             priceUnit={priceUnit}
             meta={state.meta}
+            userId={session?.user?.id ?? null}
           />
           </>
           )}

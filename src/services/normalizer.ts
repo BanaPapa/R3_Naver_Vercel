@@ -49,6 +49,8 @@ export function normalizeArticleInfo(
     managementFee: num(pi.managementFeeAmount),
     priceChangeStatus: num(pi.priceChangeStatus),
     priceChangeHistories: pi.priceChangeHistories,
+    premiumPrice: num(pi.premiumPrice),
+    optionPrice: num(pi.optionPrice),
     supplySpace: num(sp.supplySpace),
     exclusiveSpace: num(sp.exclusiveSpace),
     contractSpace: num(sp.contractSpace),
@@ -99,6 +101,8 @@ export function normalizeNewLandArticle(article: NewLandArticle): Property {
     rentPrice,
     managementFee: 0,
     priceChangeStatus,
+    premiumPrice: 0,
+    optionPrice: 0,
     supplySpace: article.area1 ?? 0,
     exclusiveSpace: article.area2 ?? 0,
     contractSpace: 0, // new.land /api/articles 에는 계약면적 없음
