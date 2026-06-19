@@ -257,7 +257,7 @@ body {
   margin-bottom: 14px;
 }
 .cp-head b {
-  font-size: 18px;
+  font-size: 20px;
   color: var(--fg);
   font-weight: 700;
 }
@@ -276,7 +276,7 @@ body {
   min-height: 0;
 }
 .cp-dong {
-  font-size: 16.5px;
+  font-size: 18.5px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -372,31 +372,31 @@ body {
   background: var(--cp-blue);
   transition: width 0.4s var(--ease);
 }
-/* 분양권 2차 진행바(가격 조회) — teal 색으로 구분 */
+/* 분양권 2차 진행바(가격 조회) — 테마 accent 색상 그대로 */
 .cp-dong.presale-phase .cp-bar i {
-  background: var(--teal);
+  background: var(--cp-blue);
 }
 .cp-dong.presale-phase.active .cp-nm,
 .cp-dong.presale-phase.active .cp-ct {
-  color: var(--teal);
+  color: var(--cp-blue);
 }
 .cp-dong.presale-phase.done .cp-ct {
-  color: var(--teal);
+  color: var(--cp-blue);
 }
 /* 단지 완료 → 분양권 가격 조회 전환 안내 배너 */
 .cp-presale-notice {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 9px 12px;
+  padding: 7px 12px;
   margin-bottom: 10px;
-  background: var(--teal-dim);
+  background: var(--blue-dim);
   border-radius: 8px;
-  border-left: 3px solid var(--teal);
+  border-left: 3px solid var(--cp-blue);
 }
 .cp-presale-ic {
   flex: none;
-  color: var(--teal);
+  color: var(--cp-blue);
   font-size: 14px;
   font-weight: 700;
   margin-top: 1px;
@@ -405,7 +405,7 @@ body {
   font-size: 13.5px;
   font-weight: 700;
   color: var(--fg);
-  margin-bottom: 3px;
+  margin-bottom: 1px;
 }
 .cp-presale-msg {
   font-size: 12.5px;
