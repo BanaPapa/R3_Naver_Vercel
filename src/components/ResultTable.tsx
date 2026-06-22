@@ -10,6 +10,7 @@ import {
   getAcquisitionCost, AcquisitionCostResult,
 } from '../services/naverApi';
 import { randomDelay } from '../services/utils';
+import { RangeSlider } from './RangeSlider';
 
 export interface TableStats {
   avgDealPrice: number;    // 원 단위
@@ -172,6 +173,16 @@ function Th({ colKey, label, sortK, curSortKey, curSortDir, onSort, onResizeStar
 
 // ─── Detail modals ────────────────────────────────────────────────────────────
 type CachedDetail         = ArticleDetailResult   | 'loading' | 'error';
+
+// 분양권 총매매가(원) — 상세캐시(detailCache)에 가격이 있으면 그 값, 없으면 base property 값.
+// 정렬·필터·슬라이더 범위가 화면 표시값과 일치하도록 공용으로 쓴다.
+function effPresaleTotalWon(p: Property, cache: Map<string, CachedDetail>): number {
+  const d = cache.get(p.articleNumber);
+  const ok = d && d !== 'loading' && d !== 'error';
+  return (ok ? d.isalePrice : p.isalePrice)
+    + (ok ? d.premiumPrice : p.premiumPrice)
+    + (ok ? d.optionPrice : p.optionPrice);
+}
 type CachedComplexDetail  = ComplexDetailResult   | 'loading' | 'error';
 type CachedAcquisitionCost = AcquisitionCostResult | 'loading' | 'error';
 
@@ -511,9 +522,9 @@ export function ResultTable({ searchKey, status, properties, realEstateType, are
       const lo = priceMin > 0 ? priceMin * 10_000 : 0;
       const hi = priceMax > 0 ? priceMax * 10_000 : Number.POSITIVE_INFINITY;
       fil = fil.filter((p) => {
-        // 행 대표가격(원): 분양권=분양가+P+옵션, 전세=보증금, 월세=월세, 그 외=매매가
+        // 행 대표가격(원): 분양권=총매매가(상세캐시 반영), 전세=보증금, 월세=월세, 그 외=매매가
         const price = isPresale
-          ? p.isalePrice + p.premiumPrice + p.optionPrice
+          ? effPresaleTotalWon(p, detailCache)
           : p.tradeType === 'B1' ? p.warrantyPrice
             : p.tradeType === 'B2' ? p.rentPrice
               : p.dealPrice;
@@ -548,33 +559,56 @@ export function ResultTable({ searchKey, status, properties, realEstateType, are
       }
     }
 
-    // 3. Sort reps only
-    const sortedReps = [...reps].sort((a, b) => {
-      const av = getSortValue(a, sortKey, realEstateType);
-      const bv = getSortValue(b, sortKey, realEstateType);
-      let cmp: number;
-      if (typeof av === 'number' && typeof bv === 'number') {
-        cmp = av - bv;
-      } else {
-        cmp = String(av).localeCompare(String(bv), 'ko');
+    // 3. 정렬값 — 분양권 가격 컬럼은 상세캐시(detailCache) 반영값으로 정렬해
+    //    화면 표시값과 어긋나지 않게 한다(크롤러가 못 채운 매물/중복은 base가 0이라
+    //    표시는 캐시값인데 정렬은 0으로 꼬이던 문제 해결).
+    const PRESALE_PRICE_KEYS = new Set<SortKey>([
+      'isalePrice', 'isalePyeong', 'premiumPrice', 'optionPrice', 'totalBuyPrice', 'realPyeongPrice',
+    ]);
+    const sortVal = (p: Property): number | string => {
+      if (isPresale && PRESALE_PRICE_KEYS.has(sortKey)) {
+        const d = detailCache.get(p.articleNumber);
+        const ok = d && d !== 'loading' && d !== 'error';
+        const isale   = ok ? d.isalePrice   : p.isalePrice;
+        const premium = ok ? d.premiumPrice : p.premiumPrice;
+        const option  = ok ? d.optionPrice  : p.optionPrice;
+        const area    = realEstateType === 'OBYG' ? p.exclusiveSpace : p.supplySpace;
+        const pyeong  = area * SQM_TO_PYEONG;
+        switch (sortKey) {
+          case 'isalePrice':      return isale;
+          case 'isalePyeong':     return pyeong > 0 && isale > 0 ? isale / pyeong : 0;
+          case 'premiumPrice':    return premium;
+          case 'optionPrice':     return option;
+          case 'totalBuyPrice':   return isale + premium + option;
+          case 'realPyeongPrice': return pyeong > 0 ? (isale + premium + option) / pyeong : 0;
+        }
       }
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
+      return getSortValue(p, sortKey, realEstateType);
+    };
+    const cmp = (a: Property, b: Property): number => {
+      const av = sortVal(a);
+      const bv = sortVal(b);
+      const c = (typeof av === 'number' && typeof bv === 'number')
+        ? av - bv
+        : String(av).localeCompare(String(bv), 'ko');
+      return sortDir === 'asc' ? c : -c;
+    };
+
+    const sortedReps = [...reps].sort(cmp);
+    // 그룹 내 중복(children)도 같은 기준으로 정렬 (대표 rep 은 그룹 선두 고정)
+    const sortedChildren = (gid: string | undefined): Property[] =>
+      gid ? [...(childMap.get(gid) ?? [])].sort(cmp) : [];
 
     // 4. All data for export (always fully expanded)
-    const allFil: Property[] = sortedReps.flatMap((rep) => {
-      const children = rep.groupId ? (childMap.get(rep.groupId) ?? []) : [];
-      return [rep, ...children];
-    });
+    const allFil: Property[] = sortedReps.flatMap((rep) => [rep, ...sortedChildren(rep.groupId)]);
 
     // 5. Display rows with expansion state
     const isGroupExpanded = (gid: string) =>
       isDupHidden ? expandedGroups.has(gid) : !expandedGroups.has(gid);
 
     const displayRows: Property[] = sortedReps.flatMap((rep) => {
-      const children = rep.groupId ? (childMap.get(rep.groupId) ?? []) : [];
       const expanded = rep.groupId ? isGroupExpanded(rep.groupId) : false;
-      return expanded ? [rep, ...children] : [rep];
+      return expanded ? [rep, ...sortedChildren(rep.groupId)] : [rep];
     });
 
     // 6. Paginate
@@ -593,7 +627,7 @@ export function ResultTable({ searchKey, status, properties, realEstateType, are
     };
   }, [
     properties, complexFilter, tradeTypeFilter, spaceMin, spaceMax, priceMin, priceMax, areaUnit,
-    filterText, sortKey, sortDir, page, realEstateType, isDupHidden, expandedGroups,
+    filterText, sortKey, sortDir, page, realEstateType, isDupHidden, expandedGroups, detailCache,
   ]);
 
   // 내보내기: 상세특징/중개업소 정보는 "+" 버튼을 눌러야만 채워지는 지연 캐시이므로,
@@ -711,6 +745,28 @@ export function ResultTable({ searchKey, status, properties, realEstateType, are
 
   const hasActiveFilter = !!(complexFilter || tradeTypeFilter || filterText || spaceMin > 0 || spaceMax > 0 || priceMin > 0 || priceMax > 0);
 
+  // 면적/가격 슬라이더의 상한 — 수집 데이터 기준 (표시 단위/상세캐시 반영).
+  const { areaSliderMax, priceSliderMax } = useMemo(() => {
+    let aMaxSqm = 0;
+    let pMaxWon = 0;
+    for (const p of properties) {
+      const a = Math.max(p.supplySpace, p.exclusiveSpace);
+      if (a > aMaxSqm) aMaxSqm = a;
+      const price = isPresale
+        ? effPresaleTotalWon(p, detailCache)
+        : p.tradeType === 'B1' ? p.warrantyPrice
+          : p.tradeType === 'B2' ? p.rentPrice
+            : p.dealPrice;
+      if (price > pMaxWon) pMaxWon = price;
+    }
+    const aDisplay = areaUnit === 'pyeong' ? aMaxSqm * SQM_TO_PYEONG : aMaxSqm;
+    return {
+      areaSliderMax: Math.max(10, Math.ceil(aDisplay)),
+      priceSliderMax: Math.max(1000, Math.ceil(pMaxWon / 10_000)), // 만원 단위
+    };
+  }, [properties, areaUnit, isPresale, detailCache]);
+  const priceStep = priceSliderMax > 100_000 ? 1000 : priceSliderMax > 10_000 ? 100 : 10;
+
   // 현재 페이지에서 각 단지의 첫 번째 매물 → 단지 정보 버튼 표시 대상
   const firstComplexInPage = useMemo(() => {
     const seen = new Set<number | string>();
@@ -800,25 +856,29 @@ export function ResultTable({ searchKey, status, properties, realEstateType, are
             {TRADE_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
 
-          <div className="result-space-filter">
-            <input type="number" className="search-input" style={{ width: '70px' }} placeholder="최소"
-              min={0} value={spaceMin || ''} onChange={(e) => { setSpaceMin(Number(e.target.value) || 0); setPage(0); }} />
-            <span className="space-tilde">~</span>
-            <input type="number" className="search-input" style={{ width: '70px' }} placeholder="최대"
-              min={0} value={spaceMax || ''} onChange={(e) => { setSpaceMax(Number(e.target.value) || 0); setPage(0); }} />
-            <span className="space-unit-hint" title="면적 표시 단위는 검색 조건에서 변경">
-              {areaUnit === 'pyeong' ? '평' : '㎡'}
-            </span>
-          </div>
+          <RangeSlider
+            label="면적"
+            min={0} max={areaSliderMax} step={1}
+            lo={spaceMin} hi={spaceMax}
+            unit={areaUnit === 'pyeong' ? '평' : '㎡'}
+            onChange={(lo, hi) => {
+              setSpaceMin(lo <= 0 ? 0 : lo);
+              setSpaceMax(hi >= areaSliderMax ? 0 : hi);
+              setPage(0);
+            }}
+          />
 
-          <div className="result-space-filter">
-            <input type="number" className="search-input" style={{ width: '84px' }} placeholder="최소가"
-              min={0} value={priceMin || ''} onChange={(e) => { setPriceMin(Number(e.target.value) || 0); setPage(0); }} />
-            <span className="space-tilde">~</span>
-            <input type="number" className="search-input" style={{ width: '84px' }} placeholder="최대가"
-              min={0} value={priceMax || ''} onChange={(e) => { setPriceMax(Number(e.target.value) || 0); setPage(0); }} />
-            <span className="space-unit-hint" title="가격 필터 단위: 만원 (예: 50000 = 5억). 분양권=총매매가, 전세=보증금, 월세=월세 기준">만원</span>
-          </div>
+          <RangeSlider
+            label="가격"
+            min={0} max={priceSliderMax} step={priceStep}
+            lo={priceMin} hi={priceMax}
+            unit="만원"
+            onChange={(lo, hi) => {
+              setPriceMin(lo <= 0 ? 0 : lo);
+              setPriceMax(hi >= priceSliderMax ? 0 : hi);
+              setPage(0);
+            }}
+          />
 
           <input className="search-input" type="text" placeholder="단지명/특징 검색..."
             value={filterText} onChange={(e) => { setFilterText(e.target.value); setPage(0); }} />

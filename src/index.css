@@ -2175,6 +2175,88 @@ input[type='range'].space-range:disabled {
   padding: 0 4px;
   white-space: nowrap;
 }
+
+/* ── 이중 손잡이 범위 슬라이더 (면적/가격 필터) ── */
+.range-slider {
+  width: 150px;
+  flex: 0 0 auto;
+}
+.rs-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+.rs-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.rs-vals {
+  font-size: 11px;
+  color: var(--fg-2);
+  white-space: nowrap;
+}
+.rs-track {
+  position: relative;
+  height: 18px;
+  display: flex;
+  align-items: center;
+}
+.rs-track::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface-2, #30363d);
+}
+.rs-fill {
+  position: absolute;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--accent, #00d4aa);
+}
+.rs-input {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  height: 18px;
+  background: none;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.rs-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent, #00d4aa);
+  border: 2px solid var(--bg, #0d1117);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.rs-input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent, #00d4aa);
+  border: 2px solid var(--bg, #0d1117);
+  cursor: pointer;
+}
+.rs-input::-webkit-slider-runnable-track {
+  background: none;
+}
+.rs-input::-moz-range-track {
+  background: none;
+}
 .search-input {
   height: 30px;
   background: var(--surface);
