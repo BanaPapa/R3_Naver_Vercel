@@ -8,6 +8,7 @@ interface CrawlModalProps {
   logs: LogEntry[];
   status: CrawlerStatus;
   regionName: string;
+  isAdmin: boolean;
   summary: DoneSummary | null;
   propertyCount: number;
   complexCount: number;
@@ -19,7 +20,7 @@ interface CrawlModalProps {
 }
 
 export function CrawlModal({
-  dongs, logs, status, regionName, summary, propertyCount, complexCount, enumerateDongs,
+  dongs, logs, status, regionName, isAdmin, summary, propertyCount, complexCount, enumerateDongs,
   onClose, onStop, onClearLogs, onSkipDong,
 }: CrawlModalProps) {
   const isDone = status === 'done';
@@ -46,6 +47,7 @@ export function CrawlModal({
               logs={logs}
               status={status}
               regionName={regionName}
+              isAdmin={isAdmin}
               onClearLogs={onClearLogs}
               onSkipDong={onSkipDong}
             />

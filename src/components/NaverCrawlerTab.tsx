@@ -13,18 +13,20 @@ import { CrawlerConfig, SavedSlot } from '../types';
 import { AreaUnit, PriceUnit } from '../services/api';
 import { setNaverBases, setNaverCrawlToken } from '../services/naverApi';
 import { fetchCrawlToken } from '../services/agentApi';
+import { startSearchLog, finishSearchLog } from '../services/searchLogsRepo';
 
 interface NaverCrawlerTabProps {
   crawler: ReturnType<typeof useCrawler>;
   slots: ReturnType<typeof useSlots>;
   session: Session | null;
   agentStatus: AgentStatusHook;
+  isAdmin: boolean;
 }
 
 const AGENT_DOWNLOAD_URL =
   'https://github.com/BanaPapa/Estate-OS/releases/latest/download/Estate-OS-Agent-Setup.exe';
 
-export function NaverCrawlerTab({ crawler, slots, session, agentStatus }: NaverCrawlerTabProps) {
+export function NaverCrawlerTab({ crawler, slots, session, agentStatus, isAdmin }: NaverCrawlerTabProps) {
   const { state, start, stop, skipDong, reset, clearLogs, load } = crawler;
   const [searchKey, setSearchKey] = useState(0);
   const [areaUnit, setAreaUnit] = useState<AreaUnit>('sqm');
@@ -156,6 +158,29 @@ export function NaverCrawlerTab({ crawler, slots, session, agentStatus }: NaverC
   useEffect(() => {
     if (state.status === 'error') setCrawlModalOpen(false);
   }, [state.status]);
+
+  // 검색 활동 로깅 — 시작 시 요약 행 생성, 종료 시 상태 갱신 (실패는 검색을 막지 않음)
+  const searchLogIdRef = useRef<string | null>(null);
+  const prevStatusRef = useRef<typeof state.status>('idle');
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    const cur = state.status;
+    prevStatusRef.current = cur;
+    if (prev === cur) return;
+
+    if (cur === 'running' && prev !== 'running') {
+      searchLogIdRef.current = null;
+      startSearchLog(state.meta).then((id) => {
+        searchLogIdRef.current = id;
+      });
+    } else if ((cur === 'done' || cur === 'error' || cur === 'stopped') && prev === 'running') {
+      finishSearchLog(searchLogIdRef.current, {
+        status: cur,
+        resultCount: state.properties.length,
+        errorMessage: cur === 'error' ? state.errorMessage ?? undefined : undefined,
+      });
+    }
+  }, [state.status, state.meta, state.properties.length, state.errorMessage]);
 
   const handleStart = (config: CrawlerConfig) => {
     setSearchKey((k) => k + 1);
@@ -552,6 +577,7 @@ export function NaverCrawlerTab({ crawler, slots, session, agentStatus }: NaverC
           logs={state.logs}
           status={state.status}
           regionName={state.regionName}
+          isAdmin={isAdmin}
           summary={state.summary}
           propertyCount={state.properties.length}
           complexCount={complexCount}

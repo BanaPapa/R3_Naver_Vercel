@@ -7,6 +7,7 @@ interface CrawlProgressPanelProps {
   logs: LogEntry[];
   status: CrawlerStatus;
   regionName: string;
+  isAdmin: boolean;
   onClearLogs: () => void;
   onSkipDong: (index: number) => void;
 }
@@ -25,7 +26,7 @@ function levelIcon(level: LogEntry['level']): string {
 }
 
 export function CrawlProgressPanel({
-  dongs, logs, status, regionName, onClearLogs, onSkipDong,
+  dongs, logs, status, regionName, isAdmin, onClearLogs, onSkipDong,
 }: CrawlProgressPanelProps) {
   const [logOpen, setLogOpen] = useState(false);
   const [logHeight, setLogHeight] = useState(LOG_DEFAULT_H);
@@ -138,44 +139,46 @@ export function CrawlProgressPanel({
         })}
       </div>
 
-      <div className="cp-log-wrap">
-        {logOpen && (
-          <div className="cp-resizer" onMouseDown={startResize} title="드래그하여 로그 영역 크기 조절">
-            <span className="cp-resizer-grip" />
-          </div>
-        )}
-        <button className="cp-log-toggle" onClick={() => setLogOpen((v) => !v)}>
-          <svg className={`caret${logOpen ? ' open' : ''}`} viewBox="0 0 24 24">
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-          상세 로그
-          <span className="cp-log-count">{logs.length > 0 ? logs.length : ''}</span>
-        </button>
-
-        {logOpen && (
-          <>
-            <div className="cp-log-body" ref={logRef} style={{ height: logHeight }}>
-              {logs.length === 0 ? (
-                <div className="cp-log-empty">로그가 없습니다</div>
-              ) : (
-                logs.map((entry, i) => (
-                  <div key={i} className={`cp-log-entry log-${entry.level}`}>
-                    <span className="cp-log-ic">{levelIcon(entry.level)}</span>
-                    <span className="cp-log-msg">{entry.message}</span>
-                  </div>
-                ))
-              )}
+      {isAdmin && (
+        <div className="cp-log-wrap">
+          {logOpen && (
+            <div className="cp-resizer" onMouseDown={startResize} title="드래그하여 로그 영역 크기 조절">
+              <span className="cp-resizer-grip" />
             </div>
-            <button
-              className="btn-ghost btn-sm cp-log-clear"
-              onClick={onClearLogs}
-              disabled={logs.length === 0}
-            >
-              지우기
-            </button>
-          </>
-        )}
-      </div>
+          )}
+          <button className="cp-log-toggle" onClick={() => setLogOpen((v) => !v)}>
+            <svg className={`caret${logOpen ? ' open' : ''}`} viewBox="0 0 24 24">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+            상세 로그
+            <span className="cp-log-count">{logs.length > 0 ? logs.length : ''}</span>
+          </button>
+
+          {logOpen && (
+            <>
+              <div className="cp-log-body" ref={logRef} style={{ height: logHeight }}>
+                {logs.length === 0 ? (
+                  <div className="cp-log-empty">로그가 없습니다</div>
+                ) : (
+                  logs.map((entry, i) => (
+                    <div key={i} className={`cp-log-entry log-${entry.level}`}>
+                      <span className="cp-log-ic">{levelIcon(entry.level)}</span>
+                      <span className="cp-log-msg">{entry.message}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+              <button
+                className="btn-ghost btn-sm cp-log-clear"
+                onClick={onClearLogs}
+                disabled={logs.length === 0}
+              >
+                지우기
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
