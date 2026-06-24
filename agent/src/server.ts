@@ -117,7 +117,7 @@ export function createServer(): express.Application {
 
   // 에이전트 실행 여부 감지
   app.get('/health', (_req: Request, res: Response) => {
-    res.json({ status: 'ok', version: '1.0.0', port: AGENT_PORT });
+    res.json({ status: 'ok', version: '1.0.4', port: AGENT_PORT });
   });
 
   // 쿠키 로그인 상태 확인
